@@ -11,7 +11,7 @@ import requests
 import time
 from datetime import datetime
 
-
+token='68d9511772384b2e813264e1475a00a11752771939387'
 headers = {
     "Accept": "application/json, text/plain, */*",
     "Accept-Language": "zh-CN,zh;q=0.9",
@@ -30,7 +30,7 @@ headers = {
     "sec-ch-ua-mobile": "?0",
     "sec-ch-ua-platform": "\"Windows\"",
     "timezone": "GMT+8",
-    "token": "b7f15b97f7704f15949867cada6242511752685049185"
+    "token": token
 }
 url = "https://yo02api-cf.l414br.com/coron/trendGraph/chart/history"
 params = {
@@ -126,13 +126,33 @@ def analyze_lottery_data(new_data):
     # 检查是否连续超过6期
     if continuous_odd_even_count > 6:
         print("⚠️ 警告: 22222 - 单双连续期数超过6期!")
-        requests.get(f'https://api.day.app/YToREckaeQXotQJPrn7MWa/pc开始连续6期{odd_even_text}啦！！！！！')
+        requests.get(f'https://api.day.app/YToREckaeQXotQJPrn7MWa/pc开始连续6期{size_text}啦！！！！！')
+        # 7连单投注双，7连双投注单
+        next_plan = get_next_plan_no(new_data['issue'])
+        if next_plan:
+            bet_target = '双' if current_odd_even == 1 else '单'
+            print(f"🚀 触发自动投注: {continuous_odd_even_count}连{odd_even_text}，投注{bet_target}")
+            bet(bet_target, next_plan)
+    
     if continuous_size_count > 6:
         print("⚠️ 警告: 22222 - 大小连续期数超过6期!")
         requests.get(f'https://api.day.app/YToREckaeQXotQJPrn7MWa/pc开始连续6期{size_text}啦！！！！！')
+        # 7连大投注小，7连小投注大
+        next_plan = get_next_plan_no(new_data['issue'])
+        if next_plan:
+            bet_target = '小' if current_size == 1 else '大'
+            print(f"🚀 触发自动投注: {continuous_size_count}连{size_text}，投注{bet_target}")
+            bet(bet_target, next_plan)
+    
     if continuous_dragon_tiger_count > 6:
         print("⚠️ 警告: 22222 - 龙虎连续期数超过6期!")
         requests.get(f'https://api.day.app/YToREckaeQXotQJPrn7MWa/pc开始连续6期{dragon_tiger_text}啦！！！！！')
+        # 7连龙投注虎，7连虎投注龙
+        next_plan = get_next_plan_no(new_data['issue'])
+        if next_plan:
+            bet_target = '虎' if current_dragon_tiger == 1 else '龙'
+            print(f"🚀 触发自动投注: {continuous_dragon_tiger_count}连{dragon_tiger_text}，投注{bet_target}")
+            bet(bet_target, next_plan)
     # 更新上一期状态
     last_odd_even = current_odd_even
     last_size = current_size
@@ -154,7 +174,7 @@ def main():
     
     try:
         while True:
-            time.sleep(5)  # 等待1分钟
+            time.sleep(60)  # 等待1分钟
             print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 正在请求最新开奖数据...")
             
             latest_data = get_latest_lottery_data()
@@ -167,5 +187,82 @@ def main():
         print("\n程序已停止")
         print(f"总共收集了 {len(lottery_results)} 期开奖数据")
 
+def bet(bet_type, next_plan_no):
+    """投注函数
+    bet_type: 投注类型 ('大', '小', '单', '双', '龙', '虎')
+    next_plan_no: 下一期期号
+    """
+
+    headers = {
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "zh-CN,zh;q=0.9",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "Origin": "https://yo02pc.kg3jt1.com",
+        "Pragma": "no-cache",
+        "Referer": "https://yo02pc.kg3jt1.com/",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "cross-site",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+        "device": "1",
+        "lang": "zh_cn",
+        "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Google Chrome\";v=\"138\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "timezone": "GMT+8",
+        "token": token
+    }
+
+    # 投注参数映射：大----201010101----da    小----201010102----xiao   单----201010201----dan  双----201010202----shuang 龙----201010401----long 虎----201010501----hu
+    bet_mapping = {
+        '大': ('201010101', 'da'),
+        '小': ('201010102', 'xiao'),
+        '单': ('201010201', 'dan'),
+        '双': ('201010202', 'shuang'),
+        '龙': ('201010401', 'long'),
+        '虎': ('201010501', 'hu')
+    }
+    
+    if bet_type not in bet_mapping:
+        print(f"错误：不支持的投注类型 {bet_type}")
+        return
+    
+    play_id, bet_num = bet_mapping[bet_type]
+    
+    url = "https://yo02api-cf.l414br.com/coron/order/double/create"
+    # URL编码的content值映射
+    content_mapping = {
+        '大': '%E5%A4%A7',
+        '小': '%E5%B0%8F', 
+        '单': '%E5%8D%95',
+        '双': '%E5%8F%8C',
+        '龙': '%E9%BE%99',
+        '虎': '%E8%99%8E'
+    }
+    
+    encoded_content = content_mapping.get(bet_type, bet_type)
+    data = f"orderSource=2&bet%5B0%5D.playId={play_id}&bet%5B0%5D.betNum={bet_num}&bet%5B0%5D.betAmount=1&bet%5B0%5D.betCount=1&bet%5B0%5D.content={encoded_content}&ticketId=2&planNo={next_plan_no}"
+    
+    try:
+        response = requests.post(url, headers=headers, data=data)
+        print(f"🎯 自动投注: {bet_type} (期号: {next_plan_no})")
+        print(f"投注结果: {response.text}")
+        return response
+    except Exception as e:
+        print(f"投注失败: {e}")
+        return None
+
+def get_next_plan_no(current_plan_no):
+    """根据当前期号生成下一期期号"""
+    try:
+        # 解析期号格式：20250717-1272
+        date_part, number_part = current_plan_no.split('-')
+        next_number = int(number_part) + 1
+        return f"{date_part}-{next_number:04d}"
+    except Exception as e:
+        print(f"期号解析失败: {e}")
+        return None
 if __name__ == "__main__":
     main()
