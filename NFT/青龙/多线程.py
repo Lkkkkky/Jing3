@@ -47,7 +47,7 @@ TARGETS = [
 
 def search_low_price(id, price):
     ret = execjs.compile(open('enc.js', 'r', encoding='utf-8').read()).call('getdata')
-
+    # print(1)
     url = "https://api.shengqingqy.cn/market/app/market/list"
     data = {
         "pageNum": "1",
