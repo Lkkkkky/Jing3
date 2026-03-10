@@ -30,11 +30,13 @@ def get_yzm(token,item_id,phone):
         if(response.json()['code']=='0'):
             print(response.text)
             return response.json()['yzm']
-        print(f'正在获取验证码{phone}')
+        logger.info(f'正在获取验证码{phone}')
         time.sleep(1)
     # 如果60次尝试后仍未获取到验证码，则重新获取
-    print(f'获取验证码超时，重新获取{phone}')
+    logger.info(f'获取验证码超时，重新获取{phone}')
     return get_yzm(token, item_id, phone)  # 递归调用自身重新获取
+def cancelAllRecv(token):
+    response = requests.get(f'https://api.haozhuma.cn/sms/?api=cancelAllRecv&token={token}')#释放所有号码
+    print(response.text)
 
-token=login()
-phone=get_number(token,'56080')#光明随心订
+

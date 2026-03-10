@@ -12,7 +12,7 @@ import json
 import time
 def get_proxy():
     r = requests.get(
-        "http://pandavip.xiongmaodaili.com/xiongmao-web/apiPlus/vgl?secret=b6840f11b6ca4cb1bf1e6e022eea51f9&orderNo=VGL20250218161152U2RB5tbS&count=1&isTxt=0&proxyType=1&validTime=0&removal=0&cityIds=&returnAccount=2",
+        "http://route.xiongmaodaili.com/xiongmao-web/apiPlus/vgl?secret=b6840f11b6ca4cb1bf1e6e022eea51f9&orderNo=VGL20260113153705yL8IUrkJ&count=1&isTxt=0&proxyType=1&validTime=0&removal=0&cityIds=&returnAccount=2",
         verify=False, allow_redirects=False)
     r.encoding = 'utf8'
 
